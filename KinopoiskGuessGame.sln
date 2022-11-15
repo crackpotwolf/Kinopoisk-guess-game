@@ -4,9 +4,34 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{9FF80E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebApi", "WebApi", "{CB860FB3-EFAD-4193-81A9-1D90720C2E0D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinopoiskGuessGame.Data", "KinopoiskGuessGame.Data\KinopoiskGuessGame.Data.csproj", "{3381C4F7-5C23-4077-B6B4-8BD1EE120FC8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinopoiskGuessGame.Common", "KinopoiskGuessGame.Common\KinopoiskGuessGame.Common.csproj", "{05516E79-AD3F-4FE4-ADF4-B7D8EA3B68E3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinopoiskGuessGame.Core", "KinopoiskGuessGame.Core\KinopoiskGuessGame.Core.csproj", "{F3024AE4-062B-4A62-9BCA-283CDBA67015}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3381C4F7-5C23-4077-B6B4-8BD1EE120FC8} = {9FF80E46-38CF-43E6-8B4A-19269E039D0F}
+		{05516E79-AD3F-4FE4-ADF4-B7D8EA3B68E3} = {9FF80E46-38CF-43E6-8B4A-19269E039D0F}
+		{F3024AE4-062B-4A62-9BCA-283CDBA67015} = {CB860FB3-EFAD-4193-81A9-1D90720C2E0D}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3381C4F7-5C23-4077-B6B4-8BD1EE120FC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3381C4F7-5C23-4077-B6B4-8BD1EE120FC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3381C4F7-5C23-4077-B6B4-8BD1EE120FC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3381C4F7-5C23-4077-B6B4-8BD1EE120FC8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05516E79-AD3F-4FE4-ADF4-B7D8EA3B68E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05516E79-AD3F-4FE4-ADF4-B7D8EA3B68E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05516E79-AD3F-4FE4-ADF4-B7D8EA3B68E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05516E79-AD3F-4FE4-ADF4-B7D8EA3B68E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3024AE4-062B-4A62-9BCA-283CDBA67015}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3024AE4-062B-4A62-9BCA-283CDBA67015}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3024AE4-062B-4A62-9BCA-283CDBA67015}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3024AE4-062B-4A62-9BCA-283CDBA67015}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
