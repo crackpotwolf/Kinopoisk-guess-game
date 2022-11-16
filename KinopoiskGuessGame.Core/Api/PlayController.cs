@@ -113,10 +113,12 @@ public class PlayController : ControllerBase
 
         // Номер вопроса
         var question = initGame.stateData.question;
+
+        var score = 0;
         
         while (countRepeat >= 0)
         {
-            AnswersResponse answer;
+            var answer = new AnswersResponse();
             
             //_logger.LogInformation(message: $"{countRepeat}. Вопрос получен: Name - {initGame.stateData.question.imageUrl}, " +
                                             //$"Id - {questionId}");
@@ -132,11 +134,14 @@ public class PlayController : ControllerBase
             // Если ответ есть
             if (answerFromDb != null)
             {
-                _logger.LogInformation(message: $"{countRepeat}. !!! Ответ найден: {answerFromDb.Name}, " +
-                                                $"Id - {question.id}");
+                score++;
+                
                 // Отправить ответ
                 answer = GetAnswer(gameId, cookie, answerFromDb.Name);
 
+                _logger.LogInformation(message: $"[Loop: {countRepeat}]-[Score: {score}]-[Life: {answer.stateData.livesLeft}] " +
+                                                $"Ответ найден: {answerFromDb.Name}, Id - {question.id}");
+                
                 // Обновить номер вопроса
                 question = answer.stateData.question;
 
@@ -144,7 +149,7 @@ public class PlayController : ControllerBase
             }
             
             // Если ответа нет
-            _logger.LogInformation(message: $"{countRepeat}. Ответ не найден");
+            _logger.LogInformation(message: $"[Loop: {countRepeat}] Ответ не найден");
             
             // Взять первое значение 
             var firstAnswer = question.answers.FirstOrDefault();
@@ -189,14 +194,13 @@ public class PlayController : ControllerBase
 
             countRepeat--;
 
-            // Завершить игру
-            while (answer.stateData.livesLeft > 0)
+            // Продожить игру если есть жизни
+            if (answer.stateData.livesLeft > 0)
             {
-                // Взять первое значение 
-                firstAnswer = answer.stateData.question.answers.FirstOrDefault();
-            
-                // Отправить ответ
-                answer = GetAnswer(gameId, cookie, firstAnswer);
+                // Обновить номер вопроса
+                question = answer.stateData.question;
+                
+                continue;
             }
             
             // Начать игру
@@ -204,7 +208,10 @@ public class PlayController : ControllerBase
 
             // Номер вопроса
             question = initGame.stateData.question;
-            
+
+            // Обновить
+            score = 0;
+
             // Симуляция
             //SleepSimulation(maxSeconds);
         }
