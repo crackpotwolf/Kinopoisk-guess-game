@@ -96,7 +96,7 @@ public class PlayController : ControllerBase
 
         return Ok();
     }
-    
+
     /// <summary>
     /// Наполнить базу
     /// </summary>
@@ -104,9 +104,10 @@ public class PlayController : ControllerBase
     /// <param name="cookie">cookie</param>
     /// <param name="countRepeat">Число запусков</param>
     /// <param name="maxSeconds">Максимальное количество секунд для симуляции ожидания</param>
+    /// <param name="minSeconds">Минимальное количество секунд для симуляции ожидания</param>
     /// <returns></returns>
     [HttpGet("game/{gameId:int}/fillBase")]
-    public IActionResult FillBase(int gameId, string cookie, int countRepeat, int maxSeconds)
+    public IActionResult FillBase(int gameId, string cookie, int countRepeat, int maxSeconds, int minSeconds)
     {
         // Начать игру
         var initGame = GetInitGame(gameId, cookie);
@@ -115,10 +116,12 @@ public class PlayController : ControllerBase
         var question = initGame.stateData.question;
 
         var score = 0;
+
+        var maxCountRepeat = countRepeat;
         
         while (countRepeat >= 0)
         {
-            var answer = new AnswersResponse();
+            AnswersResponse answer;
             
             //_logger.LogInformation(message: $"{countRepeat}. Вопрос получен: Name - {initGame.stateData.question.imageUrl}, " +
                                             //$"Id - {questionId}");
@@ -139,12 +142,16 @@ public class PlayController : ControllerBase
                 // Отправить ответ
                 answer = GetAnswer(gameId, cookie, answerFromDb.Name);
 
-                _logger.LogInformation(message: $"[Loop: {countRepeat}]-[Score: {score}]-[Life: {answer.stateData.livesLeft}] " +
+                _logger.LogInformation(message: $"[Loop: {maxCountRepeat - countRepeat}/{maxCountRepeat}]-" +
+                                                $"[Score: {score}]-" +
+                                                $"[Life: {answer.stateData.livesLeft}] " +
                                                 $"Ответ найден: {answerFromDb.Name}, Id - {question.id}");
                 
                 // Обновить номер вопроса
                 question = answer.stateData.question;
 
+                SleepSimulation(maxSeconds, minSeconds);
+                
                 continue;
             }
             
@@ -200,6 +207,8 @@ public class PlayController : ControllerBase
                 // Обновить номер вопроса
                 question = answer.stateData.question;
                 
+                SleepSimulation(maxSeconds, minSeconds);
+                
                 continue;
             }
             
@@ -213,113 +222,29 @@ public class PlayController : ControllerBase
             score = 0;
 
             // Симуляция
-            //SleepSimulation(maxSeconds);
+            SleepSimulation(maxSeconds, minSeconds);
         }
         
         return Ok();
     }
 
-    /// <summary>
-    /// Наполнить базу Fast
-    /// </summary>
-    /// <param name="gameId">Номер игры</param>
-    /// <param name="cookie">cookie</param>
-    /// <param name="countRepeat">Число запусков</param>
-    /// <param name="maxSeconds">Максимальное количество секунд для симуляции ожидания</param>
-    /// <returns></returns>
-    [HttpGet("game/{gameId:int}/fillBaseFast")]
-    public IActionResult FillBaseFast(int gameId, string cookie, int countRepeat, int maxSeconds)
-    {
-        while (countRepeat >= 0)
-        {
-            // Начать игру
-            var initGame = GetInitGame(gameId, cookie);
-
-            // Номер вопроса
-            var question = initGame.stateData.question;
-
-            //_logger.LogInformation(message: $"{countRepeat}. Вопрос получен: Name - {initGame.stateData.question.imageUrl}, " +
-                                            //$"Id - {questionId}");
-            
-            // Получить ответ из базы
-            var answerFromDb = _answerRepository
-                .GetListQuery()
-                .Include(p => p.Question)
-                .FirstOrDefault(p => p.Question.GameId == gameId &&
-                                     p.Question.Id == question.id &&
-                                     p.IsCorrect);
-
-            // Если ответ есть
-            if (answerFromDb != null)
-            {
-                _logger.LogInformation(message: $"{countRepeat}. !!! Ответ найден: {answerFromDb.Name}, " +
-                                                $"Id - {question.id}");
-                continue;
-            }
-            
-            // Если ответа нет
-            _logger.LogInformation(message: $"{countRepeat}. Ответ не найден");
-            
-            // Взять первое значение 
-            var firstAnswer = question.answers.FirstOrDefault();
-            
-            // Отправить ответ
-            var answer = GetAnswer(gameId, cookie, firstAnswer);
-            
-            // Записать вопрос в БД
-            var questionDb = new Question()
-            {
-                Id = question.id,
-                Name = question.imageUrl,
-                GameId = gameId
-            };
-
-            _questionRepository.Add(questionDb);
-
-            // Записать все ответы на вопросы в БД
-            foreach (var answerName in question.answers)
-            {
-                var answerToDb = new Answer()
-                {
-                    QuestionGuid = questionDb.Guid,
-                    Name = answerName
-                };
-                
-                // Если это правильный ответ, пометить его
-                if (answerName == answer.correctAnswer)
-                {
-                    answerToDb.IsCorrect = true;
-                    //_logger.LogInformation(message: $"{countRepeat}. Ответ получен: {answerName}");
-                }
-                else if (answerName == firstAnswer && answer.correctAnswer.Length == 0)
-                {
-                    answerToDb.IsCorrect = true;
-                    //_logger.LogInformation(message: $"{countRepeat}. Ответ получен: {answerName}");
-                }
-                
-                // Записать ответ
-                _answerRepository.Add(answerToDb);
-            }
-
-            countRepeat--;
-            
-            // Симуляция
-            //SleepSimulation(maxSeconds);
-        }
-        
-        return Ok();
-    }
-    
     /// <summary>
     /// Симуляция
     /// </summary>
-    /// <param name="maxSeconds">Максимальное число секунд</param>
-    private static void SleepSimulation(int maxSeconds)
+    /// <param name="max">Максимальное число секунд</param>
+    /// <param name="min">Минимальное число секун</param>
+    /// <param name="step">Шаг</param>
+    private void SleepSimulation(int max, int min = 1, int step = 1)
     {
         var random = new Random();
-        var mseconds = random.Next(100, maxSeconds * 1000);
-            
-        Thread.Sleep(mseconds);
+
+        var n = (max - min) / step;
+        var r =  random.Next(0, n);
+        var time = min + r * step;
+        
+        _logger.LogInformation(message: $"..zZz ...zZz - {time} seconds");
+
+        Thread.Sleep(time * 1000);
     }
 
     /// <summary>
